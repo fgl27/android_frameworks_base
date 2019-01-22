@@ -102,9 +102,6 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
     // screen state returns.  Playing the animation can also be somewhat slow.
     private static final boolean USE_COLOR_FADE_ON_ANIMATION = false;
 
-    // The minimum reduction in brightness when dimmed.
-    private static final int SCREEN_DIM_MINIMUM_REDUCTION = 10;
-
     private static final int COLOR_FADE_ON_ANIMATION_DURATION_MILLIS = 250;
     private static final int COLOR_FADE_OFF_ANIMATION_DURATION_MILLIS = 400;
 
@@ -174,9 +171,6 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
 
     // The doze screen brightness.
     private final int mScreenBrightnessDozeConfig;
-
-    // The dim screen brightness.
-    private final int mScreenBrightnessDimConfig;
 
     // The minimum allowed brightness.
     private final int mScreenBrightnessRangeMinimum;
@@ -413,12 +407,8 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
         mScreenBrightnessDozeConfig = clampAbsoluteBrightness(resources.getInteger(
                 com.android.internal.R.integer.config_screenBrightnessDoze));
 
-        mScreenBrightnessDimConfig = clampAbsoluteBrightness(resources.getInteger(
-                com.android.internal.R.integer.config_screenBrightnessDim));
-
-        mScreenBrightnessRangeMinimum =
-                Math.min(screenBrightnessSettingMinimum, mScreenBrightnessDimConfig);
-
+        mScreenBrightnessRangeMinimum = screenBrightnessSettingMinimum;
+                
         mScreenBrightnessRangeMaximum = clampAbsoluteBrightness(resources.getInteger(
                     com.android.internal.R.integer.config_screenBrightnessSettingMaximum));
         mScreenBrightnessDefault = clampAbsoluteBrightness(resources.getInteger(
@@ -1001,8 +991,7 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
         // timeout is about to expire.
         if (mPowerRequest.policy == DisplayPowerRequest.POLICY_DIM) {
             if (brightness > mScreenBrightnessRangeMinimum) {
-                brightness = Math.max(Math.min(brightness - SCREEN_DIM_MINIMUM_REDUCTION,
-                        mScreenBrightnessDimConfig), mScreenBrightnessRangeMinimum);
+                brightness = clampScreenBrightness(brightness / 2);
                 mBrightnessReasonTemp.addModifier(BrightnessReason.MODIFIER_DIMMED);
             }
             if (!mAppliedDimming) {
@@ -1741,7 +1730,6 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
         pw.println();
         pw.println("Display Power Controller Configuration:");
         pw.println("  mScreenBrightnessDozeConfig=" + mScreenBrightnessDozeConfig);
-        pw.println("  mScreenBrightnessDimConfig=" + mScreenBrightnessDimConfig);
         pw.println("  mScreenBrightnessRangeMinimum=" + mScreenBrightnessRangeMinimum);
         pw.println("  mScreenBrightnessRangeMaximum=" + mScreenBrightnessRangeMaximum);
         pw.println("  mScreenBrightnessDefault=" + mScreenBrightnessDefault);
