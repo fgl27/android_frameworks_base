@@ -64,6 +64,8 @@ import com.android.systemui.statusbar.policy.UserInfoController;
 import com.android.systemui.util.wakelock.SettableWakeLock;
 import com.android.systemui.util.wakelock.WakeLock;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.text.NumberFormat;
@@ -682,7 +684,8 @@ public class KeyguardIndicationController implements StateListener,
             mPowerPluggedIn = status.isPluggedIn() && isChargingOrFull;
             mPowerCharged = status.isCharged();
             mChargingWattage = status.maxChargingWattage;
-            mChargingSpeed = status.getChargingSpeed(mSlowThreshold, mFastThreshold);
+            String turbostatus = readTurbo();
+            mChargingSpeed = (turbostatus != null && turbostatus.equals("Turbo")) ? status.CHARGING_FAST : status.getChargingSpeed(mSlowThreshold, mFastThreshold);
             mBatteryLevel = status.level;
             updateIndication(!wasPluggedIn && mPowerPluggedInWired);
             if (mDozing) {
@@ -816,5 +819,21 @@ public class KeyguardIndicationController implements StateListener,
                 updateIndication(false);
             }
         }
+    };
+
+    private static String readTurbo() {
+        BufferedReader br;
+        String line = null;
+        try {
+            br = new BufferedReader(new FileReader("/sys/class/power_supply/battery/charge_rate"), 512);
+            try {
+                line = br.readLine();
+            } finally {
+                br.close();
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return line;
     }
 }
