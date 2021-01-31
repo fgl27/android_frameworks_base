@@ -207,10 +207,10 @@ public class NewNetworkTimeUpdateService extends Binder implements NetworkTimeUp
     private void updateSystemClock(int event) {
         final boolean forceUpdate = (event == EVENT_AUTO_TIME_CHANGED);
         if (!forceUpdate) {
-            if (getNitzAge() < mPollingIntervalMs) {
-                if (DBG) Log.d(TAG, "Ignoring NTP update due to recent NITZ");
-                return;
-            }
+            //if (getNitzAge() < mPollingIntervalMs) {
+            //    if (DBG) Log.d(TAG, "Ignoring NTP update due to recent NITZ");
+            //    return;
+            //}
 
             final long skew = Math.abs(mTime.currentTimeMillis() - System.currentTimeMillis());
             if (skew < mTimeErrorThresholdMs) {
